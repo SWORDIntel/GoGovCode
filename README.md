@@ -11,16 +11,38 @@ Instead of GAC-installed Newtonsoft dependencies and PowerShell setup, GoGovCode
 - Use in platform/compliance workflows to aggregate multiple orgs/repos into a single agency inventory  
 - Embed as a Go module in your own internal tools that need to emit or validate code.gov-compliant inventories  
 
-The tool queries GitHub, normalizes repository metadata to the official code.gov schema, and emits a JSON inventory suitable for publication on agency sites, internal catalogs, or further validation with the [code.gov schema validator](https://code.gov/about/compliance/inventory-code/validate-schema).
+The tool queries GitHub, normalizes repository metadata to the official code.gov schema, and emits a JSON inventory suitable for publication on agency sites, internal catalogs, or further validation with the official schema tools.
 
 ## Why code.gov?
 
-The U.S. Federal Source Code Policy (OMB M-16-21) requires agencies to **track and inventory custom-developed software** and to make a portion of that code discoverable and reusable across government – with at least **20% of new custom code released as open source** under the pilot. :contentReference[oaicite:0]{index=0}
+For agencies and their contractors, `code.json` isn’t just paperwork – it’s the machine-readable index of what exists, who owns it, and how it can be reused.
 
-To implement this, agencies publish a machine-readable **source code inventory** (typically at `agency.gov/code.json`) following the code.gov metadata schema. :contentReference[oaicite:1]{index=1} This inventory is used to:
+Having a clean, code.gov-compliant inventory enables you to:
 
-- Provide a single, consistent place to discover agency code assets  
-- Enable reuse and reduce duplicative software spend across agencies :contentReference[oaicite:2]{index=2}  
-- Satisfy internal policy requirements (e.g., DHS, GSA, SEC OSS policies) that reference M-16-21 and code inventories :contentReference[oaicite:3]{index=3}  
+- Prove policy compliance (e.g., open source release, reuse, licensing) without manual spreadsheets  
+- Give program offices, security teams, and auditors a single source of truth for “what code do we actually have?”  
+- De-duplicate effort across programs by making existing codebases discoverable instead of re-written  
 
-GoGovCode exists to make that **inventory-generation step** easy to automate, portable, and CI-friendly, especially for teams that don’t want to maintain Windows/PowerShell environments just to keep `code.json` compliant and up to date.
+## How this maps to real-world contractor workflows
+
+GoGovCode is designed to match how modern government-facing teams actually work:
+
+- **Multi-org / multi-tenant setups**  
+  Run one pipeline that walks multiple GitHub orgs (agency + integrator + lab) and emits a unified `code.json` per customer, directorate, or classification boundary.
+
+- **Per-engagement inventories**  
+  Attach a `code.json` snapshot to each delivery (or release tag) so every engagement has a precise view of what was in-scope at that point in time.
+
+- **Air-gapped and ephemeral runners**  
+  Build the binary once, drop it into locked-down CI runners or offline build environments, and regenerate inventories there without needing PowerShell or internet for anything except the Git host you already use.
+
+- **Compliance + security glue**  
+  Treat `code.json` as an input to the rest of your stack:  
+  - join it with SBOM output  
+  - feed it into internal dashboards  
+  - use it to drive which repos get extra scanning, telemetry, or hardening.
+
+- **Consulting / oversight roles**  
+  When you’re brought in to “make sense of the mess”, pointing GoGovCode at an org and emitting a first-pass `code.json` is a fast way to discover all the moving parts before deeper analysis.
+
+The goal is to make `code.json` generation **cheap enough to do all the time** – locally, in CI, and across multiple organizations – so inventories stop being a painful yearly exercise and become part of the normal delivery pipeline.
