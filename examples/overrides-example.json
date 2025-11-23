@@ -1,0 +1,20 @@
+{
+  "overrides": [
+    {
+      "project": "my-project",
+      "action": "replaceproperty",
+      "property": "laborHours",
+      "value": 100
+    },
+    {
+      "project": "another-project",
+      "action": "replaceproperty",
+      "property": "status",
+      "value": "Development"
+    },
+    {
+      "project": "deprecated-project",
+      "action": "removeproject"
+    }
+  ]
+}
