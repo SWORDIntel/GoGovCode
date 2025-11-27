@@ -55,6 +55,73 @@ Phase 1 establishes the foundational microservice scaffold:
 - ✅ HTTP server with graceful shutdown
 - ✅ Base middleware chain (request ID, logging, panic recovery)
 
+## Phase 2: Clearance, Policy, and Audit Integration
+
+**Status:** ✅ Complete
+
+Phase 2 adds DSMIL-specific security and compliance features:
+
+- ✅ **Device & Clearance Models** - DSMIL clearance levels (0x02020202-0x09090909), device registry, token computation
+- ✅ **Policy Engine** - JSON/YAML policy definitions with validation, conflict detection, and priority-based evaluation
+- ✅ **Clearance Middleware** - Automatic extraction and validation of device ID, layer, and clearance from headers
+- ✅ **Audit Logging** - Immutable audit events with decision tracking (allow/deny), multiple writer backends (stdout, file, MinIO stub)
+- ✅ **Access Control** - Upward-only data flow enforcement, clearance-based route protection
+
+### Protected Endpoints
+
+```bash
+# Public endpoint (no auth)
+curl http://localhost:8080/api/public
+
+# Restricted endpoint (requires clearance level 3+)
+curl -H "X-Device-ID: 1" \
+     -H "X-Clearance: 03030303" \
+     -H "X-Layer: data" \
+     http://localhost:8080/api/restricted
+
+# High security endpoint (requires clearance level 7+)
+curl -H "X-Device-ID: 3" \
+     -H "X-Clearance: 07070707" \
+     -H "X-Layer: control" \
+     http://localhost:8080/api/high-security
+```
+
+### Policy Example
+
+Policies are loaded at startup. Example policy rule:
+
+```json
+{
+  "id": "allow-restricted",
+  "name": "Allow restricted with clearance level 3+",
+  "effect": "allow",
+  "routes": ["/api/restricted"],
+  "methods": ["GET", "POST"],
+  "required_clearance": 50529027,
+  "priority": 50
+}
+```
+
+### Audit Events
+
+All protected requests generate audit events:
+
+```json
+{
+  "event_id": "evt-abc123...",
+  "timestamp": "2025-11-27T08:00:00Z",
+  "actor": "device-1",
+  "clearance": 50529027,
+  "device_id": 1,
+  "layer": "data",
+  "action": "/api/restricted",
+  "method": "GET",
+  "decision": "allow",
+  "reason": "allowed by rule 'Allow restricted with clearance level 3+'",
+  "request_id": "req-xyz789..."
+}
+```
+
 ## Quick Start
 
 ### Running the Server

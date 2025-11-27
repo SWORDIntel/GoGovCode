@@ -165,7 +165,7 @@ func defaults() *Config {
 		},
 		Service: ServiceConfig{
 			Name:    "gogovcode",
-			Version: "1.0.0-phase1",
+			Version: "1.0.0-phase2",
 		},
 		Profile: ProfileDev,
 	}
