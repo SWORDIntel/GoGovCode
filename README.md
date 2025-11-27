@@ -1,17 +1,144 @@
-# GoGovCode
+# GoGovCode – DSMIL Control Plane Framework
 
-GoGovCode is a Go-based, cross-platform reimplementation of the NSA Cybersecurity CodeGov module.
+GoGovCode is a Go-based control plane framework designed for the **DSMIL (Distributed Secure Multi-level Infrastructure Layer)** ecosystem.
 
-Like the original, it creates a [code.gov](https://code.gov/) [code inventory JSON file](https://code.gov/about/compliance/inventory-code) (`code.json`) from GitHub repository information – but without the Windows / PowerShell / .NET prerequisites.
+Originally a code.gov inventory generator, GoGovCode has evolved into a **microservice scaffold** that provides:
 
-Instead of GAC-installed Newtonsoft dependencies and PowerShell setup, GoGovCode ships as a simple CLI and Go library that you can:
+- **Standardized HTTP server** with health checks, structured logging, and graceful shutdown
+- **Hierarchical configuration** supporting dev/test/prod/DSMIL deployment profiles
+- **Security-first defaults** with TLS support and audit-ready logging
+- **Extensible architecture** ready for PQC (post-quantum cryptography), QUIC protocols, and policy enforcement
 
-- Run locally on Linux, macOS, or in containers to generate `code.json` on demand  
-- Drop into CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins, etc.) to auto-refresh inventories on release or on a schedule  
-- Use in platform/compliance workflows to aggregate multiple orgs/repos into a single agency inventory  
-- Embed as a Go module in your own internal tools that need to emit or validate code.gov-compliant inventories  
+GoGovCode serves as the foundation for DSMIL control-plane services, providing consistent patterns for:
 
-The tool queries GitHub, normalizes repository metadata to the official code.gov schema, and emits a JSON inventory suitable for publication on agency sites, internal catalogs, or further validation with the official schema tools.
+- Configuration management across 104+ device types
+- Structured event logging with correlation IDs
+- Health monitoring and readiness checks
+- Authentication and authorization hooks (future phases)
+- Audit trail generation and immutable storage (future phases)
+
+## Architecture
+
+GoGovCode follows a clean architecture pattern:
+
+```
+cmd/gogovcode/          - Main server entrypoint
+api/
+  handlers/             - HTTP request handlers
+  middleware/           - Request ID, logging, recovery middleware
+  routes/               - Route definitions
+internal/
+  auth/                 - Authentication (future)
+  audit/                - Audit logging (future)
+  health/               - Health check system
+  logging/              - Structured logging with correlation IDs
+  policy/               - Policy engine (future)
+  server/               - HTTP server with graceful shutdown
+  util/                 - Utilities
+pkg/
+  client/               - Client libraries (future)
+  models/               - Data models
+  schema/               - JSON schemas
+config/                 - Configuration system
+```
+
+## Phase 1: Foundation & Baseline Integration
+
+**Status:** ✅ Complete
+
+Phase 1 establishes the foundational microservice scaffold:
+
+- ✅ Project structure aligned with DSMIL expectations
+- ✅ Hierarchical config system (file + env + flags)
+- ✅ Structured JSON logging with correlation IDs
+- ✅ Health endpoints (`/healthz`, `/readyz`)
+- ✅ HTTP server with graceful shutdown
+- ✅ Base middleware chain (request ID, logging, panic recovery)
+
+## Quick Start
+
+### Running the Server
+
+```bash
+# Build
+go build -o gogovcode ./cmd/gogovcode
+
+# Run with defaults (dev profile, port 8080)
+./gogovcode
+
+# Run with custom profile
+./gogovcode -profile prod -port 8443 -tls
+
+# Run with environment variables
+export GOGOVCODE_PORT=9000
+export GOGOVCODE_LOG_LEVEL=debug
+./gogovcode
+```
+
+### Health Checks
+
+```bash
+# Liveness check (always returns 200)
+curl http://localhost:8080/healthz
+
+# Readiness check (checks dependencies)
+curl http://localhost:8080/readyz
+```
+
+### Configuration
+
+GoGovCode supports hierarchical configuration with priority: **flags > env > file > defaults**
+
+**Configuration file example (`config.json`):**
+
+```json
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080
+  },
+  "tls": {
+    "enabled": true,
+    "cert_file": "/path/to/cert.pem",
+    "key_file": "/path/to/key.pem"
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  },
+  "service": {
+    "name": "gogovcode",
+    "version": "1.0.0-phase1"
+  },
+  "profile": "prod"
+}
+```
+
+**Environment variables:**
+
+- `GOGOVCODE_HOST` - Server bind host
+- `GOGOVCODE_PORT` - Server port
+- `GOGOVCODE_LOG_LEVEL` - Log level (debug/info/warn/error)
+- `GOGOVCODE_LOG_FORMAT` - Log format (json/text)
+- `GOGOVCODE_TLS_ENABLED` - Enable TLS (true/false)
+- `GOGOVCODE_TLS_CERT` - TLS certificate path
+- `GOGOVCODE_TLS_KEY` - TLS key path
+
+## Legacy CLI Tool
+
+The original code.gov CLI tool is still available at `cmd/codegov-cli/` for generating code inventory JSON files.
+
+```bash
+# Build legacy CLI
+go build -o codegov-cli ./cmd/codegov-cli
+
+# Generate code.gov JSON
+./codegov-cli generate \
+  --orgs "NSACodeGov,18F" \
+  --agency "NSA" \
+  --email "contact@nsa.gov" \
+  --output code.json
+```
 
 ## Why code.gov?
 
